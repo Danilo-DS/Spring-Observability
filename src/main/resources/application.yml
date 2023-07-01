@@ -1,0 +1,84 @@
+## Application ##
+spring:
+  application:
+    name: spring-application
+  
+## H2 ##
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  datasource:
+    url: jdbc:h2:mem:springproject
+    username: test
+    password: test
+    driverClassName: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+
+## Zipkin ##
+#  zipkin: # Configuration for spring-cloud-sleuth-zipkin dependency
+#    service:
+#      name: spring-application
+#    base-url: ${ZIPKIN_HOST:http://localhost:9412/}
+
+# Logging Configuration JDBC
+jdbc:
+  datasource-proxy:
+    logging: SLF4J
+    multiline: false
+    query:
+      enable-logging: true
+      log-level: DEBUG
+      logger-name: br.com.springwithobservability.repository.JpaRepository
+
+## Logback ##
+logging:
+  config:  ${user.dir}${LOGBACK_FILE:/src/main/resources/logback/logback-spring.xml}
+#  level:
+#    org.springframework.web.servlet.DispatcherServlet: DEBUG # Show logs about Dispatcher Servlet(Request HTTP)
+#    org.springframework.data.jpa.repository.JpaRepository: DEBUG ## log level config JPA properties
+
+## Logstash ##
+logstash:
+  host: ${LOGSTASH_HOST:localhost}
+  port: ${LOGSTASH_PORT:5044}
+
+## Actuator ##
+management:
+  metrics: # prometheus metrics
+    distribution:
+      minimum-expected-value: 
+        http.server.requests: 1s 
+      maximum-expected-value: 
+        http.server.requests: 10s
+      percentiles: 
+        http.server.requests: 0.5, 0.7, 0.95, 0.99
+      percentiles-histogram:
+        http.server.requests: true
+  endpoints:
+    web:
+      exposure:
+        include: "health,metrics,prometheus,mappings,info" # Expose endpoints for monitoring
+  zipkin: # zipkin
+    tracing:
+      endpoint:  ${ZIPKIN_HOST:http://localhost:9411/}
+  tracing: # zipkin tracing
+    sampling:
+      probability: 1.0
+  endpoint:
+    beans:
+      cache:
+        time-to-live: "10s" # Updated beans in cache
+    health:
+      show-details: always # Show Details of the application for monitoring  
+      show-components: always # Show Components of the application for monitoring
+    metrics:
+      enabled: true
+
+

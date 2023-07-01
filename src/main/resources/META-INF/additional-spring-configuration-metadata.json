@@ -1,0 +1,14 @@
+{
+	"properties": [
+		{
+			"name": "logstash.host",
+			"type": "java.lang.String",
+			"description": "'logstash.host' Logstash access host"
+		},
+		{
+			"name": "logstash.port",
+			"type": "java.lang.String",
+			"description": "'logstash.port' Logstash access port"
+		}
+	]
+}

@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  app:
+    image: 'spring-observability:0.0.1'
+    build:
+      context: ../
+      dockerfile: ./docker/app/Dockerfile
+    ports: 
+      - 8080:8080
+    container_name: spring-observability-app
+    networks:
+     - observability
+    environment:
+     - LOGBACK_FILE=/logback/logback-spring.xml
+     - LOGSTASH_HOST=logstash
+     - LOGSTASH_PORT=5044
+     - ZIPKIN_HOST=http://zipkin:9411/api/v2/spans
+  
+  grafana:
+    image: grafana/grafana-oss:9.4.7
+    container_name: grafana-ui
+    networks:
+     - observability
+    volumes:
+     - grafana-storage:/var/lib/grafana
+    ports:
+     - 3000:3000
+     
+  prometheus:
+    image: prometheus:2.43.0
+    build:
+      context: ./prometheus
+    container_name: prometheus-metrics
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    networks:
+     - observability
+    ports:
+     - 9090:9090
+
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin
+    networks:
+     - observability
+    ports:
+     - 9411:9411
+    environment:
+     - STORAGE_TYPE=mem
+     #- ES_HOSTS=http://elasticsearch-zipkin:9200 #Configuration for elasticsearch
+     #- JAVA_OPTS=-Xms1G -Xmx1G -XX:+ExitOnOutOfMemoryError #Configuration for elasticsearch
+
+  logstash:
+    restart: on-failure
+    image: logstash:8.7.0
+    build:
+      context: ./logstash
+    container_name: logstash-tpc
+    networks:
+     - observability
+    ports:
+     - 5044:5044
+     - 9600:9600
+
+networks:
+  observability:
+    driver: bridge
+    
+volumes:
+  grafana-storage:
+    driver: local
+    name: grafana-storage
+#  elasticsearch-zipkin:
+#    driver: local
